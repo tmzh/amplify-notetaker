@@ -1,6 +1,23 @@
-# Getting Started with Create React App
+# Amplify Notetaker
+This project is based on the course (Serverless React with AWS Amplify - The Complete Guide)[https://learning.oreilly.com/videos/serverless-react-with/9781839219726/] by Reed Barger. It implements a full-stack GraphQL React app backed by DynamoDB table.
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+
+## Technologies used
+
+### Frontend
+
+* React
+* AWS Amplify
+* S3 static website
+* Cloudfront
+
+### Backend
+
+* AWS AppSync
+* AWS Amplify
+* DynamoDB
+* Cognito Identity provider
 
 ## Available Scripts
 
