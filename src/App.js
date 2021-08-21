@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { API, graphqlOperation } from "aws-amplify";
+import { API, Auth, graphqlOperation } from "aws-amplify";
 import { withAuthenticator } from "aws-amplify-react";
 import { createNote, deleteNote, updateNote } from "./graphql/mutations";
 import {
@@ -13,16 +13,24 @@ function App() {
   const [id, setId] = useState("");
   const [note, setNote] = useState("");
   const [notes, setNotes] = useState([]);
+  const [owner, setOwner] = useState("None");
 
   const getNotes = async () => {
     const result = await API.graphql(graphqlOperation(listNotes));
     setNotes(result.data.listNotes.items);
   };
 
+  Auth.currentAuthenticatedUser()
+    .then((data) => {
+      console.log(data.username);
+      setOwner(data.username);
+    })
+    .catch((err) => console.log(err));
+
   useEffect(() => {
     getNotes();
     const createNoteListener = API.graphql(
-      graphqlOperation(onCreateNote)
+      graphqlOperation(onCreateNote, { owner })
     ).subscribe({
       next: (noteData) => {
         const newNote = noteData.value.data.onCreateNote;
@@ -36,39 +44,43 @@ function App() {
       },
     });
 
-    const deleteNoteListener = API.graphql(graphqlOperation(onDeleteNote)).subscribe(
-      {
-        next: noteData => {
-          const deletedNote = noteData.value.data.onDeleteNote;
-          setNotes((prevNotes) => {
-            const updatedNotes = prevNotes.filter(note => note.id !== deletedNote.id)
-            return updatedNotes
-          })
-
-        }
-      }
-    )
-
-    const updateNoteListener = API.graphql(graphqlOperation(onUpdateNote)).subscribe(
-      {
-      next: noteData => {
-        const updatedNote = noteData.value.data.onUpdateNote
+    const deleteNoteListener = API.graphql(
+      graphqlOperation(onDeleteNote, { owner })
+    ).subscribe({
+      next: (noteData) => {
+        const deletedNote = noteData.value.data.onDeleteNote;
         setNotes((prevNotes) => {
-          const index = prevNotes.findIndex(note => note.id === updatedNote.id)
+          const updatedNotes = prevNotes.filter(
+            (note) => note.id !== deletedNote.id
+          );
+          return updatedNotes;
+        });
+      },
+    });
+
+    const updateNoteListener = API.graphql(
+      graphqlOperation(onUpdateNote, { owner })
+    ).subscribe({
+      next: (noteData) => {
+        const updatedNote = noteData.value.data.onUpdateNote;
+        setNotes((prevNotes) => {
+          const index = prevNotes.findIndex(
+            (note) => note.id === updatedNote.id
+          );
           const updatedNotes = [
             ...prevNotes.slice(0, index),
             updatedNote,
-            ...prevNotes.slice(index + 1)
-          ]
-          return updatedNotes
-        })
-      }})
-
+            ...prevNotes.slice(index + 1),
+          ];
+          return updatedNotes;
+        });
+      },
+    });
 
     return () => {
       createNoteListener.unsubscribe();
       deleteNoteListener.unsubscribe();
-    }
+    };
   }, []);
 
   const handleSetNote = async ({ note, id }) => {
@@ -94,9 +106,9 @@ function App() {
   };
 
   const resetState = () => {
-      setNote("");
-      setId("");
-  }
+    setNote("");
+    setId("");
+  };
 
   const handleAddNote = async (event) => {
     event.preventDefault();

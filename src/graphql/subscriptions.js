@@ -8,6 +8,7 @@ export const onCreateNote = /* GraphQL */ `
       note
       createdAt
       updatedAt
+      owner
     }
   }
 `;
@@ -18,6 +19,7 @@ export const onUpdateNote = /* GraphQL */ `
       note
       createdAt
       updatedAt
+      owner
     }
   }
 `;
@@ -28,6 +30,7 @@ export const onDeleteNote = /* GraphQL */ `
       note
       createdAt
       updatedAt
+      owner
     }
   }
 `;

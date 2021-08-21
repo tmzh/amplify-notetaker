@@ -1,4 +1,4 @@
-type Note @model {
+type Note @model(subscriptions: { level: public }) @auth(rules: [{ allow: owner}]) {
   id: ID!
   note: String!
 }
